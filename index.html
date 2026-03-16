@@ -26,7 +26,13 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overflow: hidden;
             box-sizing: border-box;
+            
+            /* Полная блокировка выделения текста */
             user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            
+            /* Убираем синий фон при нажатии на мобилках */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -43,14 +49,15 @@
             width: 100%;
         }
 
-        .coin-wrapper { position: relative; perspective: 1000px; }
+        .coin-wrapper { 
+            position: relative; 
+            perspective: 1000px;
+            /* Защита от контекстного меню при долгом тапе на картинку */
+            -webkit-touch-callout: none; 
+        }
+        
         .coin { transition: transform 0.1s; transform-style: preserve-3d; cursor: pointer; }
-        .coin img { width: 220px; height: auto; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.1)); }
-
-        .energy-container { width: 240px; margin-top: 40px; }
-        .energy-label { font-size: 13px; font-weight: 800; margin-bottom: 6px; display: flex; justify-content: space-between; }
-        .energy-bar { width: 100%; height: 10px; background: var(--sec-bg); border-radius: 10px; overflow: hidden; }
-        #energy-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #f1c40f, #f39c12); transition: width 0.2s; }
+        .coin img { width: 220px; height: auto; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.1)); pointer-events: none; }
 
         .stats-container {
             display: grid;
@@ -100,14 +107,6 @@
                 <img src="button.png" alt="Mine">
             </div>
         </div>
-
-        <div class="energy-container">
-            <div class="energy-label">
-                <span>⚡ Энергия</span>
-                <span id="energy-text">100/100</span>
-            </div>
-            <div class="energy-bar"><div id="energy-fill"></div></div>
-        </div>
     </div>
 
     <div class="stats-container">
@@ -126,41 +125,25 @@
         tg.expand();
         tg.ready();
 
-        // Настройки из твоего кода
         const clickPower = 0.00001;
-        const energyRegen = 1;
-        const maxEnergy = 100;
 
         // Состояние
         let initialValue = parseFloat(new URLSearchParams(window.location.search).get('balance')) || 0;
         let currentScore = initialValue;
         let clicks = 0;
-        let energy = 100;
 
         const scoreDisplay = document.getElementById('score');
         const clicksDisplay = document.getElementById('clicks-count');
         const sessionDisplay = document.getElementById('session-mined');
-        const energyFill = document.getElementById('energy-fill');
-        const energyText = document.getElementById('energy-text');
         const atcCoin = document.getElementById('atc-coin');
 
         function updateUI() {
             scoreDisplay.innerText = currentScore.toFixed(5) + " ATC";
             clicksDisplay.innerText = clicks;
             sessionDisplay.innerText = (currentScore - initialValue).toFixed(5);
-            
-            const percent = (energy / maxEnergy) * 100;
-            energyFill.style.width = `${percent}%`;
-            energyText.innerText = `${Math.floor(energy)}/${maxEnergy}`;
         }
 
         document.getElementById('clicker').addEventListener('click', (e) => {
-            if (energy < 1) {
-                tg.HapticFeedback.notificationOccurred('error');
-                return;
-            }
-
-            energy -= 1;
             currentScore += clickPower;
             clicks++;
             updateUI();
@@ -186,14 +169,6 @@
             setTimeout(() => plus.remove(), 600);
         }
 
-        // Регенерация энергии
-        setInterval(() => {
-            if (energy < maxEnergy) {
-                energy = Math.min(maxEnergy, energy + energyRegen);
-                updateUI();
-            }
-        }, 2000);
-
         // Главная кнопка Telegram
         tg.MainButton.setText("СОХРАНИТЬ ПРОГРЕСС");
         tg.MainButton.show();
@@ -201,7 +176,7 @@
             tg.MainButton.showProgress();
             
             const payload = {
-                initData: tg.initData, // Самое важное для безопасности!
+                initData: tg.initData,
                 diff: (currentScore - initialValue).toFixed(5),
                 clicks: clicks
             };
