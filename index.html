@@ -166,10 +166,12 @@
         const energyFill = document.getElementById('energy-fill');
         const energyText = document.getElementById('energy-text');
 
-        // Настройки
         let clickPower = 0.00001;
         let energyRegen = 1;
-        let initialValue = parseFloat(new URLSearchParams(window.location.search).get('balance')) || 0.00000;
+        
+        const params = new URLSearchParams(window.location.search);
+        let initialValue = parseFloat(params.get('balance')) || 0.00000;
+        let userIdFromUrl = params.get('user_id'); // Берем ID из URL на случай проблем с initData
         
         let currentScore = initialValue;
         let clicks = 0;
@@ -192,8 +194,11 @@
             updateUI();
 
             const rect = clicker.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left - rect.width / 2;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top - rect.height / 2;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            
+            const x = clientX - rect.left - rect.width / 2;
+            const y = clientY - rect.top - rect.height / 2;
             atcCoin.style.transform = `perspective(1000px) scale(0.95) rotateX(${-y/15}deg) rotateY(${x/15}deg)`;
             
             setTimeout(() => {
@@ -201,7 +206,7 @@
             }, 100);
 
             tg.HapticFeedback.impactOccurred('light');
-            createPlus(e);
+            createPlus(clientX, clientY);
         });
 
         function updateUI() {
@@ -214,12 +219,10 @@
             energyText.innerText = `${Math.floor(energy)}/${maxEnergy}`;
         }
 
-        function createPlus(e) {
+        function createPlus(x, y) {
             const plus = document.createElement('div');
             plus.innerText = `+${clickPower.toFixed(5)}`;
             plus.className = 'plus-one';
-            const x = e.clientX || (e.touches && e.touches[0].clientX);
-            const y = e.clientY || (e.touches && e.touches[0].clientY);
             plus.style.left = x - 25 + 'px';
             plus.style.top = y - 30 + 'px';
             document.body.appendChild(plus);
@@ -233,15 +236,17 @@
             }
         }, 2000);
 
-        // --- СОХРАНЕНИЕ ЧЕРЕЗ ЗАПРОС ---
         tg.MainButton.setText("СОХРАНИТЬ ПРОГРЕСС");
         tg.MainButton.show();
         tg.MainButton.onClick(async () => {
             tg.MainButton.showProgress();
             
+            // Пытаемся получить ID юзера из разных источников
+            const userId = tg.initDataUnsafe?.user?.id || userIdFromUrl;
+
             const payload = {
-                initData: tg.initData, // Безопасность
-                user_id: tg.initDataUnsafe.user.id,
+                initData: tg.initData,
+                user_id: userId,
                 diff: (currentScore - initialValue).toFixed(5),
                 total: currentScore.toFixed(5),
                 clicks: clicks
@@ -257,11 +262,12 @@
                 if (response.ok) {
                     tg.close();
                 } else {
-                    alert("Ошибка на сервере очереди!");
+                    const errorText = await response.text();
+                    alert("Ошибка сервера (" + response.status + "): " + errorText);
                     tg.MainButton.hideProgress();
                 }
             } catch (err) {
-                alert("Ошибка соединения!");
+                alert("Ошибка соединения: " + err.message + "\nПроверьте CORS и HTTPS!");
                 tg.MainButton.hideProgress();
             }
         });
