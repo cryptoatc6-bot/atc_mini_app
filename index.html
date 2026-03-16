@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Frog Clicker Pro</title>
+    <title>ATC Miner</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -143,8 +143,8 @@
 
     <div class="main-game">
         <div class="coin-wrapper" id="clicker">
-            <div class="coin" id="frog-coin">
-                <img src="button.png" alt="Frog Button">
+            <div class="coin" id="atc-coin">
+                <img src="button.png" alt="Mine Button">
             </div>
         </div>
 
@@ -173,7 +173,7 @@
     <script>
         const tg = window.Telegram.WebApp;
         const clicker = document.getElementById('clicker');
-        const frogCoin = document.getElementById('frog-coin');
+        const atcCoin = document.getElementById('atc-coin');
         const scoreDisplay = document.getElementById('score');
         const clicksDisplay = document.getElementById('clicks-count');
         const sessionDisplay = document.getElementById('session-mined');
@@ -212,10 +212,10 @@
             const rect = clicker.getBoundingClientRect();
             const x = e.clientX - rect.left - rect.width / 2;
             const y = e.clientY - rect.top - rect.height / 2;
-            frogCoin.style.transform = `perspective(1000px) scale(0.96) rotateX(${-y/15}deg) rotateY(${x/15}deg)`;
+            atcCoin.style.transform = `perspective(1000px) scale(0.96) rotateX(${-y/15}deg) rotateY(${x/15}deg)`;
             
             setTimeout(() => {
-                frogCoin.style.transform = 'perspective(1000px) scale(1) rotateX(0) rotateY(0)';
+                atcCoin.style.transform = 'perspective(1000px) scale(1) rotateX(0) rotateY(0)';
             }, 100);
 
             tg.HapticFeedback.impactOccurred('light');
