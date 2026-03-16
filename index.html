@@ -1,163 +1,350 @@
 <!DOCTYPE html>
+
 <html lang="ru">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
     <title>ATC Miner</title>
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <style>
+
         :root {
+
             --bg: var(--tg-theme-bg-color, #ffffff);
+
             --text: var(--tg-theme-text-color, #000000);
+
             --hint: var(--tg-theme-hint-color, #999999);
+
             --sec-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+
             --accent: #f1c40f;
+
+            --energy: #f1c40f;
+
         }
+
+
 
         body {
+
             background-color: var(--bg);
+
             color: var(--text);
+
             margin: 0;
+
             padding: 20px;
+
             display: flex;
+
             flex-direction: column;
+
             align-items: center;
+
             height: 100vh;
+
             font-family: 'Segoe UI', Roboto, sans-serif;
+
             overflow: hidden;
+
             box-sizing: border-box;
+
             user-select: none;
+
             -webkit-tap-highlight-color: transparent;
+
         }
+
+
 
         .header { text-align: center; margin-top: 10px; flex: 0; }
+
         #score { font-size: 44px; font-weight: 900; margin: 0; letter-spacing: -1px; }
+
         .hint { color: var(--hint); font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; }
 
+
+
         .main-game {
+
             flex: 1;
+
             display: flex;
+
             flex-direction: column;
+
             align-items: center;
+
             justify-content: center;
+
             width: 100%;
+
         }
 
-        .coin-wrapper { position: relative; perspective: 1000px; }
-        .coin { transition: transform 0.1s; transform-style: preserve-3d; }
+
+
+        .coin-wrapper {
+
+            position: relative;
+
+            perspective: 1000px;
+
+        }
+
+
+
+        .coin {
+
+            transition: transform 0.1s;
+
+            transform-style: preserve-3d;
+
+        }
+
+
+
         .coin img {
+
             width: 240px;
+
             height: auto;
+
             display: block;
+
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.12));
+
         }
 
-        .energy-container { width: 240px; margin-top: 40px; }
-        .energy-label {
-            font-size: 13px;
-            font-weight: 800;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            text-transform: uppercase;
+
+
+        .energy-container {
+
+            width: 240px;
+
+            margin-top: 40px;
+
         }
+
+
+
+        .energy-label {
+
+            font-size: 13px;
+
+            font-weight: 800;
+
+            margin-bottom: 6px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            text-transform: uppercase;
+
+        }
+
+
 
         .energy-bar {
+
             width: 100%;
+
             height: 10px;
+
             background: var(--sec-bg);
+
             border-radius: 10px;
+
             overflow: hidden;
+
         }
+
+
 
         #energy-fill {
+
             width: 100%;
+
             height: 100%;
+
             background: linear-gradient(90deg, #f1c40f, #f39c12);
+
             transition: width 0.2s;
+
         }
+
+
 
         .stats-container {
+
             display: grid;
+
             grid-template-columns: 1fr 1fr;
+
             gap: 15px;
+
             width: 100%;
+
             max-width: 350px;
+
             margin-bottom: 30px;
+
         }
+
+
 
         .stat-card {
+
             background-color: var(--sec-bg);
+
             padding: 15px;
+
             border-radius: 18px;
+
             text-align: center;
+
+            border: 1px solid rgba(0,0,0,0.04);
+
         }
 
+
+
         .stat-label {
+
             display: block;
+
             color: var(--hint);
+
             font-size: 11px;
+
             font-weight: 700;
+
             text-transform: uppercase;
+
             margin-bottom: 4px;
+
         }
+
+
 
         .stat-value { font-size: 16px; font-weight: 800; color: var(--accent); }
 
+
+
         .plus-one {
+
             position: absolute;
+
             color: var(--accent);
+
             font-weight: 900;
+
             font-size: 26px;
+
             animation: moveUp 0.6s ease-out forwards;
+
             pointer-events: none;
+
             z-index: 100;
+
         }
+
+
 
         @keyframes moveUp {
+
             0% { opacity: 1; transform: translateY(0); }
+
             100% { opacity: 0; transform: translateY(-120px); }
+
         }
+
     </style>
+
 </head>
+
 <body>
 
+
+
     <div class="header">
+
         <p id="score">0.00000 ATC</p>
+
         <span class="hint">Твой баланс</span>
+
     </div>
+
+
 
     <div class="main-game">
+
         <div class="coin-wrapper" id="clicker">
+
             <div class="coin" id="atc-coin">
+
                 <img src="button.png" alt="Mine Button">
+
             </div>
+
         </div>
+
+
 
         <div class="energy-container">
+
             <div class="energy-label">
+
                 <span>⚡ Энергия</span>
+
                 <span id="energy-text">100/100</span>
+
             </div>
+
             <div class="energy-bar">
+
                 <div id="energy-fill"></div>
+
             </div>
+
         </div>
+
     </div>
 
+
+
     <div class="stats-container">
+
         <div class="stat-card">
+
             <span class="stat-label">Кликов</span>
+
             <span class="stat-value" id="clicks-count">0</span>
+
         </div>
+
         <div class="stat-card">
+
             <span class="stat-label">Заработано</span>
+
             <span class="stat-value" id="session-mined">0.00000</span>
+
         </div>
+
     </div>
+
+
 
     <script>
         const tg = window.Telegram.WebApp;
+    
         const clicker = document.getElementById('clicker');
         const atcCoin = document.getElementById('atc-coin');
         const scoreDisplay = document.getElementById('score');
@@ -165,112 +352,135 @@
         const sessionDisplay = document.getElementById('session-mined');
         const energyFill = document.getElementById('energy-fill');
         const energyText = document.getElementById('energy-text');
-
+    
         let clickPower = 0.00001;
         let energyRegen = 1;
-        
-        const params = new URLSearchParams(window.location.search);
-        let initialValue = parseFloat(params.get('balance')) || 0.00000;
-        let userIdFromUrl = params.get('user_id'); // Берем ID из URL на случай проблем с initData
-        
+    
+        let initialValue = parseFloat(new URLSearchParams(window.location.search).get('balance')) || 0.00000;
         let currentScore = initialValue;
         let clicks = 0;
         let energy = 100;
         const maxEnergy = 100;
-
+    
         updateUI();
+    
         tg.expand();
         tg.ready();
-
+    
         clicker.addEventListener('click', (e) => {
             if (energy <= 0) {
                 tg.HapticFeedback.notificationOccurred('error');
                 return;
             }
-
+    
             energy -= 1;
             currentScore += clickPower;
             clicks++;
+    
             updateUI();
-
+    
             const rect = clicker.getBoundingClientRect();
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-            
-            const x = clientX - rect.left - rect.width / 2;
-            const y = clientY - rect.top - rect.height / 2;
-            atcCoin.style.transform = `perspective(1000px) scale(0.95) rotateX(${-y/15}deg) rotateY(${x/15}deg)`;
-            
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            atcCoin.style.transform = `perspective(1000px) scale(0.96) rotateX(${-y/15}deg) rotateY(${x/15}deg)`;
+    
             setTimeout(() => {
                 atcCoin.style.transform = 'perspective(1000px) scale(1) rotateX(0) rotateY(0)';
             }, 100);
-
+    
             tg.HapticFeedback.impactOccurred('light');
-            createPlus(clientX, clientY);
+            createPlus(e);
         });
-
+    
         function updateUI() {
             scoreDisplay.innerText = currentScore.toFixed(5) + " ATC";
             clicksDisplay.innerText = clicks;
-            sessionDisplay.innerText = (currentScore - initialValue).toFixed(5);
-            
+    
+            let mined = currentScore - initialValue;
+            sessionDisplay.innerText = mined.toFixed(5);
+    
             const energyPercent = (energy / maxEnergy) * 100;
             energyFill.style.width = `${energyPercent}%`;
             energyText.innerText = `${Math.floor(energy)}/${maxEnergy}`;
         }
-
-        function createPlus(x, y) {
+    
+        function createPlus(e) {
             const plus = document.createElement('div');
             plus.innerText = `+${clickPower.toFixed(5)}`;
             plus.className = 'plus-one';
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
             plus.style.left = x - 25 + 'px';
             plus.style.top = y - 30 + 'px';
             document.body.appendChild(plus);
             setTimeout(() => plus.remove(), 600);
         }
-
+    
         setInterval(() => {
             if (energy < maxEnergy) {
                 energy = Math.min(maxEnergy, energy + energyRegen);
                 updateUI();
             }
         }, 2000);
-
+    
         tg.MainButton.setText("СОХРАНИТЬ ПРОГРЕСС");
         tg.MainButton.show();
+    
+        let saveInProgress = false;
+    
         tg.MainButton.onClick(async () => {
+            if (saveInProgress) return;
+            saveInProgress = true;
+    
+            tg.MainButton.setText("СОХРАНЕНИЕ...");
             tg.MainButton.showProgress();
-            
-            // Пытаемся получить ID юзера из разных источников
-            const userId = tg.initDataUnsafe?.user?.id || userIdFromUrl;
-
-            const payload = {
-                initData: tg.initData,
-                user_id: userId,
-                diff: (currentScore - initialValue).toFixed(5),
-                total: currentScore.toFixed(5),
-                clicks: clicks
-            };
-
+    
             try {
-                const response = await fetch('https://vanya19012111test.pythonanywhere.com/post', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const payload = {
+                    initData: tg.initData,
+                    diff: (currentScore - initialValue).toFixed(5),
+                    total: currentScore.toFixed(5),
+                    clicks: clicks
+                };
+    
+                const resp = await fetch("https://ТВОЙ_СЕРВЕР/save_mining", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
                     body: JSON.stringify(payload)
                 });
-
-                if (response.ok) {
-                    tg.close();
-                } else {
-                    const errorText = await response.text();
-                    alert("Ошибка сервера (" + response.status + "): " + errorText);
-                    tg.MainButton.hideProgress();
+    
+                const result = await resp.json();
+    
+                if (!resp.ok || !result.ok) {
+                    throw new Error(result.error || "Ошибка сохранения");
                 }
+    
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showPopup({
+                    title: "Готово",
+                    message: `Сохранено: +${result.mined} ATC`,
+                    buttons: [{ type: "ok" }]
+                }, () => {
+                    tg.close();
+                });
+    
             } catch (err) {
-                alert("Ошибка соединения: " + err.message + "\nПроверьте CORS и HTTPS!");
+                tg.HapticFeedback.notificationOccurred('error');
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: err.message || "Не удалось сохранить прогресс",
+                    buttons: [{ type: "ok" }]
+                });
+            } finally {
+                saveInProgress = false;
                 tg.MainButton.hideProgress();
+                tg.MainButton.setText("СОХРАНИТЬ ПРОГРЕСС");
             }
         });
     </script>
+
 </body>
+
 </html>
